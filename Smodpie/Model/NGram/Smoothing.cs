@@ -1,7 +1,7 @@
 using Smodpie.Config;
 using Smodpie.Counter;
 
-namespace Smodpie.Model;
+namespace Smodpie.Model.NGram;
 
 public static class Smoothing
 {

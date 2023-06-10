@@ -2,7 +2,7 @@ using System.Buffers;
 using Smodpie.Config;
 using Smodpie.Counter;
 
-namespace Smodpie.Model;
+namespace Smodpie.Model.NGram;
 
 /// <summary>
 /// NGramModel is an implementation of an n-gram language model with support for online learning.
