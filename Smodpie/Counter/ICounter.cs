@@ -134,4 +134,10 @@ public interface ICounter
     /// Clears all counts by setting them to 0.
     /// </summary>
     public void ClearCounts();
+
+    /// <summary>
+    /// Creates a new instance of the counter.
+    /// </summary>
+    /// <returns>A new instance of the counter.</returns>
+    public ICounter NewInstance();
 }

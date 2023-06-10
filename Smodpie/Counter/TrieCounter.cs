@@ -225,6 +225,15 @@ public class TrieCounter : ICounter
         _root.Clear();
     }
 
+    /// <summary>
+    /// Creates a new instance of the counter.
+    /// </summary>
+    /// <returns>A new instance of the counter.</returns>
+    public ICounter NewInstance()
+    {
+        return new TrieCounter();
+    }
+
     private class TrieNode
     {
         public long Count { get; private set; }

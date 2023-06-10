@@ -88,7 +88,7 @@ public class NGramModel : OnlineModel
     }
 
     /// <summary>
-    /// Internal implementation of modeling a single token at the specified index. This method should be overridden by derived classes.
+    /// Internal implementation of modeling a single token at the specified index.
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to model.</param>
@@ -127,7 +127,7 @@ public class NGramModel : OnlineModel
     }
 
     /// <summary>
-    /// Internal implementation of generating predictions for a single token at the specified index. This method should be overridden by derived classes.
+    /// Internal implementation of generating predictions for a single token at the specified index.
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to predict.</param>
@@ -164,5 +164,14 @@ public class NGramModel : OnlineModel
         int take = Math.Min(Order, tokens.Length - index);
         ArraySegment<int> ngram = new ArraySegment<int>(tokens, index, take);
         return ngram;
+    }
+
+    /// <summary>
+    /// Creates a new clean instance of the model with the same settings as the current instance.
+    /// </summary>
+    /// <returns>A new instance of the model with the same settings.</returns>
+    protected override OnlineModel NewInstanceInternal()
+    {
+        return new NGramModel(Order, Counter.NewInstance(), SmoothingType, OnlineLearning);
     }
 }

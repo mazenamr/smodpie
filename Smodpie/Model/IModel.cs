@@ -81,4 +81,10 @@ public interface IModel
     /// <param name="index">The index of the token to predict.</param>
     /// <returns>A dictionary containing the top N predictions for the token at the specified index with their probability and confidence values.</returns>
     public Dictionary<int, (double Probability, double Confidence)> PredictToken(in int[] tokens, int index);
+
+    /// <summary>
+    /// Creates a new instance of the model with the same configuration as the current instance.
+    /// </summary>
+    /// <returns>A new instance of the model.</returns>
+    public IModel NewInstance();
 }

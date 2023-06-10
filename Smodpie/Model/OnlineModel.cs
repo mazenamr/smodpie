@@ -125,4 +125,21 @@ public abstract class OnlineModel : IModel
     /// <param name="index">The index of the token to predict.</param>
     /// <returns>A dictionary containing the top N predictions for the token at the specified index with their probability and confidence values.</returns>
     abstract protected Dictionary<int, (double Probability, double Confidence)> PredictTokenInternal(in int[] tokens, int index);
+
+    /// <summary>
+    /// Creates a new clean instance of the model with the same settings as the current instance.
+    /// </summary>
+    /// <returns>A new instance of the model with the same settings.</returns>
+    public IModel NewInstance()
+    {
+        var copy = NewInstanceInternal();
+        copy.OnlineLearning = _onlineLearning != OnlineLearningStatus.Disabled;
+        return copy;
+    }
+
+    /// <summary>
+    /// Creates a new clean instance of the model with the same settings as the current instance. This method should be overridden by derived classes.
+    /// </summary>
+    /// <returns>A new instance of the model with the same settings.</returns>
+    protected abstract OnlineModel NewInstanceInternal();
 }
