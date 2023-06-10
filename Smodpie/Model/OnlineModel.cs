@@ -68,13 +68,13 @@ public abstract class OnlineModel : IModel
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to learn.</param>
-    abstract public void LearnToken(in IReadOnlyList<int> tokens, int index);
+    abstract public void LearnToken(in int[] tokens, int index);
 
     /// <summary>
     /// Instructs the model to forget the provided tokens.
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
-    abstract public void ForgetToken(in IReadOnlyList<int> tokens, int index);
+    abstract public void ForgetToken(in int[] tokens, int index);
 
     /// <summary>
     /// Models a single token at the specified index and returns its probability and confidence values.
@@ -82,7 +82,7 @@ public abstract class OnlineModel : IModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to model.</param>
     /// <returns>Probability and confidence values for the token at the specified index.</returns>
-    public (double Probability, double Confidence) ModelToken(in IReadOnlyList<int> tokens, int index)
+    public (double Probability, double Confidence) ModelToken(in int[] tokens, int index)
     {
         var result = ModelTokenInternal(tokens, index);
 
@@ -98,7 +98,7 @@ public abstract class OnlineModel : IModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to predict.</param>
     /// <returns>A dictionary containing the top N predictions for the token at the specified index with their probability and confidence values.</returns>
-    public IReadOnlyDictionary<int, (double Probability, double Confidence)> PredictToken(in IReadOnlyList<int> tokens, int index)
+    public Dictionary<int, (double Probability, double Confidence)> PredictToken(in int[] tokens, int index)
     {
         PauseOnlineLearning();
         var result = PredictTokenInternal(tokens, index);
@@ -116,7 +116,7 @@ public abstract class OnlineModel : IModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to model.</param>
     /// <returns>Probability and confidence values for the token at the specified index.</returns>
-    abstract protected (double Probability, double Confidence) ModelTokenInternal(in IReadOnlyList<int> tokens, int index);
+    abstract protected (double Probability, double Confidence) ModelTokenInternal(in int[] tokens, int index);
 
     /// <summary>
     /// Internal implementation of generating predictions for a single token at the specified index. This method should be overridden by derived classes.
@@ -124,5 +124,5 @@ public abstract class OnlineModel : IModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to predict.</param>
     /// <returns>A dictionary containing the top N predictions for the token at the specified index with their probability and confidence values.</returns>
-    abstract protected IReadOnlyDictionary<int, (double Probability, double Confidence)> PredictTokenInternal(in IReadOnlyList<int> tokens, int index);
+    abstract protected Dictionary<int, (double Probability, double Confidence)> PredictTokenInternal(in int[] tokens, int index);
 }

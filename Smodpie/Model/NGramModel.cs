@@ -1,3 +1,4 @@
+using System.Buffers;
 using Smodpie.Config;
 using Smodpie.Counter;
 
@@ -15,6 +16,8 @@ namespace Smodpie.Model;
 /// </remarks>
 public class NGramModel : OnlineModel
 {
+    private ArrayPool<ArraySegment<int>> _arrayPool = ArrayPool<ArraySegment<int>>.Shared;
+
     public int Order { get; init; }
     public ICounter Counter { get; init; }
     public Smoothing.SmoothingTypes SmoothingType { get; init; }
@@ -36,9 +39,11 @@ public class NGramModel : OnlineModel
     /// Instructs the model to learn the provided tokens.
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
-    public void LearnTokens(in IReadOnlyList<int> tokens)
+    public void LearnTokens(in int[] tokens)
     {
-        Counter.IncrementCountBatch(GetNGrams(tokens));
+        ArraySegment<int>[] ngrams = GetNGrams(tokens);
+        Parallel.ForEach(ngrams, index => Counter.IncrementCount(index));
+        _arrayPool.Return(ngrams);
     }
 
     /// <summary>
@@ -46,20 +51,25 @@ public class NGramModel : OnlineModel
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to learn.</param>
-    public override void LearnToken(in IReadOnlyList<int> tokens, int index)
+    public override void LearnToken(in int[] tokens, int index)
     {
         var ngram = GetNGram(tokens, index);
         for (var i = 0; i < ngram.Count; i++)
-            Counter.IncrementCount(ngram.Skip(i).ToArray());
+        {
+            Counter.IncrementCount(ngram);
+            ngram = ngram.Slice(1);
+        }
     }
 
     /// <summary>
     /// Instructs the model to forget the provided tokens.
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
-    public void ForgetTokens(in IReadOnlyList<int> tokens)
+    public void ForgetTokens(in int[] tokens)
     {
-        Counter.DecrementCountBatch(GetNGrams(tokens));
+        ArraySegment<int>[] ngrams = GetNGrams(tokens);
+        Parallel.ForEach(ngrams, index => Counter.DecrementCount(index));
+        _arrayPool.Return(ngrams);
     }
 
     /// <summary>
@@ -67,11 +77,14 @@ public class NGramModel : OnlineModel
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to forget.</param>
-    public override void ForgetToken(in IReadOnlyList<int> tokens, int index)
+    public override void ForgetToken(in int[] tokens, int index)
     {
         var ngram = GetNGram(tokens, index);
         for (var i = 0; i < ngram.Count; i++)
-            Counter.DecrementCount(ngram.Skip(i).ToArray());
+        {
+            Counter.IncrementCount(ngram);
+            ngram = ngram.Slice(1);
+        }
     }
 
     /// <summary>
@@ -80,7 +93,7 @@ public class NGramModel : OnlineModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to model.</param>
     /// <returns>Probability and confidence values for the token at the specified index.</returns>
-    protected override (double Probability, double Confidence) ModelTokenInternal(in IReadOnlyList<int> tokens, int index)
+    protected override (double Probability, double Confidence) ModelTokenInternal(in int[] tokens, int index)
     {
         var ngram = GetNGram(tokens, index);
         double probability = 0;
@@ -89,7 +102,7 @@ public class NGramModel : OnlineModel
 
         for (var i = ngram.Count; i >= 0; i--)
         {
-            var n = ngram.Skip(i).ToArray();
+            var n = ngram.Slice(i);
             var counts = Counter.GetCounts(n);
             if (counts.Count == 0)
                 if (counts.ContextCount == 0)
@@ -119,7 +132,7 @@ public class NGramModel : OnlineModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The index of the token to predict.</param>
     /// <returns>A dictionary containing the top N predictions for the token at the specified index with their probability and confidence values.</returns>
-    protected override IReadOnlyDictionary<int, (double Probability, double Confidence)> PredictTokenInternal(in IReadOnlyList<int> tokens, int index)
+    protected override Dictionary<int, (double Probability, double Confidence)> PredictTokenInternal(in int[] tokens, int index)
     {
         throw new NotImplementedException();
     }
@@ -129,13 +142,13 @@ public class NGramModel : OnlineModel
     /// </summary>
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <returns>A list of all n-grams in the provided tokens.</returns>
-    private IReadOnlyList<IReadOnlyList<int>> GetNGrams(in IReadOnlyList<int> tokens)
+    private ArraySegment<int>[] GetNGrams(in int[] tokens)
     {
-        int[][] ngrams = new int[tokens.Count][];
-        for (var i = 0; i < tokens.Count; i++)
+        ArraySegment<int>[] ngrams = _arrayPool.Rent(tokens.Length);
+        for (var i = 0; i < tokens.Length; i++)
         {
-            int take = Math.Min(Order, tokens.Count - i);
-            ngrams[i] = tokens.Skip(i).Take(take).ToArray();
+            int take = Math.Min(Order, tokens.Length - i);
+            ngrams[i] = new ArraySegment<int>(tokens, i, take);
         }
         return ngrams;
     }
@@ -146,9 +159,10 @@ public class NGramModel : OnlineModel
     /// <param name="tokens">A list of lexed and translated input tokens.</param>
     /// <param name="index">The starting index of the n-gram.</param>
     /// <returns>An n-gram of the provided tokens starting at the specified index.</returns>
-    private IReadOnlyList<int> GetNGram(in IReadOnlyList<int> tokens, int index)
+    private ArraySegment<int> GetNGram(in int[] tokens, int index)
     {
-        int take = Math.Min(Order, tokens.Count - index);
-        return tokens.Skip(index).Take(take).ToArray();
+        int take = Math.Min(Order, tokens.Length - index);
+        ArraySegment<int> ngram = new ArraySegment<int>(tokens, index, take);
+        return ngram;
     }
 }
