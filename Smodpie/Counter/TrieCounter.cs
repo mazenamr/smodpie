@@ -240,8 +240,8 @@ public class TrieCounter : ICounter
         public long ContextCount { get; private set; }
         public Dictionary<int, TrieNode> Children { get; }
 
-        private readonly object _updateLock = new object();
-        private readonly object _addChildLock = new object();
+        private readonly object _updateLock = new();
+        private readonly object _addChildLock = new();
 
         public TrieNode()
         {
@@ -315,8 +315,8 @@ public class TrieCounter : ICounter
             if (n == 0)
                 return Count == count ? 1 : 0;
 
-            if (memo.ContainsKey((n, count, this)))
-                return memo[(n, count, this)];
+            if (memo.TryGetValue((n, count, this), out var value))
+                return value;
 
             int result = 0;
             foreach (TrieNode child in Children.Values)

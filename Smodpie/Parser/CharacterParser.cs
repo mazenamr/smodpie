@@ -18,7 +18,7 @@ public class CharacterParser : IParser
         set
         {
             if (value < 1)
-                throw new ArgumentOutOfRangeException("TokenLength", "TokenLength must be greater than 0.");
+                throw new ArgumentOutOfRangeException(nameof(TokenLength), "TokenLength must be greater than 0.");
 
             _tokenLength = value;
         }
@@ -32,11 +32,11 @@ public class CharacterParser : IParser
     public string[] Parse(string text)
     {
         if (text == null)
-            throw new ArgumentNullException("text");
+            throw new ArgumentNullException(nameof(text));
 
-        return text.ToCharArray().Select((c, i) => new { c, i })
-            .GroupBy(x => x.i / _tokenLength)
-            .Select(g => new string(g.Select(x => x.c).ToArray()))
+        return text
+            .Chunk(TokenLength)
+            .Select(chunk => new string(chunk))
             .ToArray();
     }
 }

@@ -22,7 +22,7 @@ public class WordParser : IParser
         set
         {
             if (value == null)
-                throw new ArgumentNullException("Separators", "Separators cannot be null.");
+                throw new ArgumentNullException(nameof(Separators), "Separators cannot be null.");
 
             _separators = value;
         }
@@ -36,7 +36,7 @@ public class WordParser : IParser
     public string[] Parse(string text)
     {
         if (text == null)
-            throw new ArgumentNullException("text");
+            throw new ArgumentNullException(nameof(text));
 
         return text.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
     }

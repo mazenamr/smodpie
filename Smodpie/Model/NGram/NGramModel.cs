@@ -16,7 +16,7 @@ namespace Smodpie.Model.NGram;
 /// </remarks>
 public class NGramModel : OnlineModel
 {
-    private ArrayPool<ArraySegment<int>> _arrayPool = ArrayPool<ArraySegment<int>>.Shared;
+    private readonly ArrayPool<ArraySegment<int>> _arrayPool = ArrayPool<ArraySegment<int>>.Shared;
 
     public int Order { get; init; }
     public ICounter Counter { get; init; }

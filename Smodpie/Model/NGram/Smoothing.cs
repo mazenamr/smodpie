@@ -17,29 +17,22 @@ public static class Smoothing
 
     public static (double Probability, double Confidence) Smooth(SmoothingTypes type, (long ContextCount, long Count) counts, in IReadOnlyList<int> tokens, in ICounter counter)
     {
-        switch (type)
+        return type switch
         {
-            case SmoothingTypes.JelinekMercer:
-                return JelinekMercer(counts, tokens, counter);
-            case SmoothingTypes.WittenBell:
-                return WittenBell(counts, tokens, counter);
-            case SmoothingTypes.AbsoluteDiscounting:
-                return AbsoluteDiscounting(counts, tokens, counter);
-            case SmoothingTypes.KneserNey:
-                return KneserNey(counts, tokens, counter);
-            case SmoothingTypes.ModifiedKneserNey:
-                return ModifiedKneserNey(counts, tokens, counter);
-            case SmoothingTypes.AbsoluteDiscountingModified:
-                return AbsoluteDiscountingModified(counts, tokens, counter);
-            default:
-                throw new ArgumentException($"Unknown smoothing type: {type}");
-        }
+            SmoothingTypes.JelinekMercer => JelinekMercer(counts, tokens, counter),
+            SmoothingTypes.WittenBell => WittenBell(counts, tokens, counter),
+            SmoothingTypes.AbsoluteDiscounting => AbsoluteDiscounting(counts, tokens, counter),
+            SmoothingTypes.KneserNey => KneserNey(counts, tokens, counter),
+            SmoothingTypes.ModifiedKneserNey => ModifiedKneserNey(counts, tokens, counter),
+            SmoothingTypes.AbsoluteDiscountingModified => AbsoluteDiscountingModified(counts, tokens, counter),
+            _ => throw new ArgumentException($"Unknown smoothing type: {type}"),
+        };
     }
 
     public static (double Probability, double Confidence) JelinekMercer((long ContextCount, long Count) counts, in IReadOnlyList<int> tokens, in ICounter counter)
     {
         var lambda = Constant.JELINEK_MERCER_LAMBDA;
-        double probability = (double)counts.Count / (double)counts.ContextCount;
+        double probability = (double)counts.Count / counts.ContextCount;
         var confidence = lambda;
         return (probability, confidence);
     }
