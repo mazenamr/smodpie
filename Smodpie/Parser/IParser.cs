@@ -71,7 +71,7 @@ public interface IParser
             if (recursive)
                 files = Directory.GetFiles(directoryPath, "*", SearchOption.AllDirectories);
 
-            var parsedFiles = new List<string[][]>();
+            var parsedFiles = new List<string[][]>(files.Length);
             foreach (var file in files)
             {
                 try

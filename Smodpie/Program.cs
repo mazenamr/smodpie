@@ -4,12 +4,12 @@ namespace Smodpie;
 
 internal class Program
 {
-    static int Main(string[] args)
+    static Task<int> Main(string[] args)
     {
         var rootCommand = CreateRootCommand();
 
         // Parse the incoming args and invoke the handler
-        return rootCommand.InvokeAsync(args).Result;
+        return rootCommand.InvokeAsync(args);
     }
 
     private static RootCommand CreateRootCommand()
@@ -22,7 +22,7 @@ internal class Program
 
         var testOption = new Option<string>(
             new[] { "-te", "--test" },
-            "The path of the training files"
+            "The path of the test files"
         );
 
         var parserOption = new Option<string>(

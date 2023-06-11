@@ -84,7 +84,7 @@ public interface ICounter
 
         await Parallel.ForEachAsync(sequence, async (index, cancellationToken) =>
         {
-            await Task.Run(() => IncrementCount(index));
+            await Task.Run(() => IncrementCount(index), cancellationToken);
         });
     }
 
@@ -119,7 +119,7 @@ public interface ICounter
 
         await Parallel.ForEachAsync(sequence, async (index, cancellationToken) =>
         {
-            await Task.Run(() => DecrementCount(index));
+            await Task.Run(() => DecrementCount(index), cancellationToken);
         });
     }
 
