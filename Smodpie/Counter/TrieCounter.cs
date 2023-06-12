@@ -2,11 +2,16 @@ namespace Smodpie.Counter;
 
 public class TrieCounter : ICounter
 {
-    private readonly TrieNode _root;
+    public readonly TrieNode _root;
 
     public TrieCounter()
     {
         _root = new TrieNode();
+    }
+
+    public TrieCounter(TrieNode root)
+    {
+        _root = root ?? throw new ArgumentNullException(nameof(root));
     }
 
     /// <summary>
@@ -22,13 +27,13 @@ public class TrieCounter : ICounter
         TrieNode node = _root;
         foreach (int index in sequence)
         {
-            if (node.Children.TryGetValue(index, out TrieNode? child))
+            if (node.CH.TryGetValue(index, out TrieNode? child))
                 node = child;
             else
                 return (0, 0);
         }
 
-        return (node.ContextCount, node.Count);
+        return (node.CC, node.C);
     }
 
     /// <summary>
@@ -44,13 +49,13 @@ public class TrieCounter : ICounter
         TrieNode node = _root;
         foreach (int index in context)
         {
-            if (node.Children.TryGetValue(index, out TrieNode? child))
+            if (node.CH.TryGetValue(index, out TrieNode? child))
                 node = child;
             else
                 return 0;
         }
 
-        return node.Children.Count;
+        return node.CH.Count;
     }
 
     /// <summary>
@@ -69,7 +74,7 @@ public class TrieCounter : ICounter
         TrieNode node = _root;
         foreach (int index in context)
         {
-            if (node.Children.TryGetValue(index, out TrieNode? child))
+            if (node.CH.TryGetValue(index, out TrieNode? child))
                 node = child;
             else
                 return new List<int>();
@@ -80,9 +85,9 @@ public class TrieCounter : ICounter
                 y.Count.CompareTo(x.Count) == 0 ?
                     x.Key.CompareTo(y.Key) : y.Count.CompareTo(x.Count)));
 
-        foreach (var child in node.Children)
+        foreach (var child in node.CH)
         {
-            topSuccessors.Add((child.Key, child.Value.Count));
+            topSuccessors.Add((child.Key, child.Value.C));
             if (topSuccessors.Count > limit)
                 topSuccessors.Remove(topSuccessors.Max);
         }
@@ -121,7 +126,7 @@ public class TrieCounter : ICounter
         TrieNode node = _root;
         foreach (int index in context)
         {
-            if (node.Children.TryGetValue(index, out TrieNode? child))
+            if (node.CH.TryGetValue(index, out TrieNode? child))
                 node = child;
             else
                 return new Dictionary<int, int>();
@@ -147,11 +152,11 @@ public class TrieCounter : ICounter
 
         foreach (int index in sequence)
         {
-            if (!node.Children.ContainsKey(index))
+            if (!node.CH.ContainsKey(index))
                 node.AddChild(index);
 
             node.UpdateCount(1);
-            node = node.Children[index];
+            node = node.CH[index];
         }
 
         node.UpdateCount(1);
@@ -171,7 +176,7 @@ public class TrieCounter : ICounter
 
         foreach (int index in sequence)
         {
-            if (node.Children.TryGetValue(index, out TrieNode? child))
+            if (node.CH.TryGetValue(index, out TrieNode? child))
                 node = child;
             else return;
         }
@@ -181,7 +186,7 @@ public class TrieCounter : ICounter
         foreach (int index in sequence)
         {
             node.UpdateCount(-1);
-            node = node.Children[index];
+            node = node.CH[index];
         }
 
         node.UpdateCount(-1);
@@ -200,18 +205,18 @@ public class TrieCounter : ICounter
             throw new ArgumentOutOfRangeException(nameof(count));
 
         TrieNode node = _root;
-        long diff = count - node.Count;
+        long diff = count - node.C;
 
         if (diff == 0)
             return;
 
         foreach (int index in sequence)
         {
-            if (!node.Children.ContainsKey(index))
+            if (!node.CH.ContainsKey(index))
                 node.AddChild(index);
 
             node.UpdateCount(diff);
-            node = node.Children[index];
+            node = node.CH[index];
         }
 
         node.UpdateCount(diff);
@@ -234,20 +239,27 @@ public class TrieCounter : ICounter
         return new TrieCounter();
     }
 
-    private class TrieNode
+    public class TrieNode
     {
-        public long Count { get; private set; }
-        public long ContextCount { get; private set; }
-        public Dictionary<int, TrieNode> Children { get; }
+        public long C { get; set; }
+        public long CC { get; set; }
+        public Dictionary<int, TrieNode> CH { get; set; }
 
         private readonly object _updateLock = new();
         private readonly object _addChildLock = new();
 
         public TrieNode()
         {
-            Count = 0;
-            ContextCount = 0;
-            Children = new Dictionary<int, TrieNode>();
+            C = 0;
+            CC = 0;
+            CH = new Dictionary<int, TrieNode>();
+        }
+
+        public TrieNode(long count, long contextCount)
+        {
+            C = count;
+            CC = contextCount;
+            CH = new Dictionary<int, TrieNode>();
         }
 
         /// <summary>
@@ -263,12 +275,12 @@ public class TrieCounter : ICounter
                 if (diff == 0)
                     return;
 
-                diff = Math.Max(-Count, diff);
+                diff = Math.Max(-C, diff);
 
-                Count += diff;
+                C += diff;
 
-                foreach (TrieNode child in Children.Values)
-                    child.ContextCount += diff;
+                foreach (TrieNode child in CH.Values)
+                    child.CC += diff;
             }
         }
 
@@ -281,11 +293,11 @@ public class TrieCounter : ICounter
         {
             lock (_addChildLock)
             {
-                if (!Children.ContainsKey(index))
-                    Children[index] = new()
+                if (!CH.ContainsKey(index))
+                    CH[index] = new()
                     {
-                        Count = 0,
-                        ContextCount = Count
+                        C = 0,
+                        CC = C
                     };
             }
         }
@@ -295,13 +307,13 @@ public class TrieCounter : ICounter
         /// </summary>
         public void Clear()
         {
-            Count = 0;
-            ContextCount = 0;
+            C = 0;
+            CC = 0;
 
-            foreach (TrieNode child in Children.Values)
+            foreach (TrieNode child in CH.Values)
                 child.Clear();
 
-            Children.Clear();
+            CH.Clear();
         }
 
         /// <summary>
@@ -313,13 +325,13 @@ public class TrieCounter : ICounter
         public int GetNumberOfSequencesWithCount(int n, int count, Dictionary<(int, int, TrieNode), int> memo)
         {
             if (n == 0)
-                return Count == count ? 1 : 0;
+                return C == count ? 1 : 0;
 
             if (memo.TryGetValue((n, count, this), out var value))
                 return value;
 
             int result = 0;
-            foreach (TrieNode child in Children.Values)
+            foreach (TrieNode child in CH.Values)
                 result += child.GetNumberOfSequencesWithCount(n - 1, count, memo);
 
             memo[(n, count, this)] = result;

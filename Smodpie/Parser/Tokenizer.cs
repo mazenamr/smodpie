@@ -4,27 +4,33 @@ public class Tokenizer
 {
     private const string UnknownToken = "<UNKNOWN>";
 
-    private readonly IDictionary<string, int> _tokenIndices = new Dictionary<string, int>();
-    private readonly IList<string> _tokens = new List<string>();
-    private readonly IList<int> _counts = new List<int>();
+    public readonly IDictionary<string, int> _tokenIndices = new Dictionary<string, int>();
+    public readonly IList<string> _tokens = new List<string>();
+    public readonly IList<int> _counts = new List<int>();
 
     private bool _closed = false;
 
-    public int Store(string token, int count = 1)
+    public int Store(string token, int diff = 1)
     {
         if (TryGetIndex(token, out var index))
         {
-            _counts[index] = count;
+            _counts[index] += diff;
         }
         else
         {
             index = _tokens.Count;
             _tokenIndices.Add(token, index);
             _tokens.Add(token);
-            _counts.Add(count);
+            _counts.Add(diff);
         }
 
         return index;
+    }
+
+    public void Store(IEnumerable<string> tokens)
+    {
+        foreach (var token in tokens)
+            Store(token);
     }
 
     public void Close() => _closed = true;

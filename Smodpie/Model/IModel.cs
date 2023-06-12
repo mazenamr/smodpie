@@ -1,14 +1,9 @@
-using Smodpie.Model.NGram;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-
 namespace Smodpie.Model;
 
 /// <summary>
 /// Interface for modeling input tokens.
 /// It provides methods for learning, forgetting, modeling, and predicting tokens in the input.
 /// </summary>
-[JsonDerivedType(typeof(NGramModel), 1)]
 public interface IModel
 {
     /// <summary>
@@ -92,22 +87,4 @@ public interface IModel
     /// </summary>
     /// <returns>A new instance of the model.</returns>
     public IModel NewInstance();
-
-    public void SaveToFile(string fileName)
-    {
-        using var fs = File.OpenWrite(fileName);
-        JsonSerializer.Serialize(fs, this);
-    }
-
-    public static void SaveToFile(string fileName, IModel model)
-    {
-        using var fs = File.OpenWrite(fileName);
-        JsonSerializer.Serialize(fs, model);
-    }
-
-    public static IModel LoadFromFile(string fileName)
-    {
-        using var fs = File.OpenRead(fileName);
-        return JsonSerializer.Deserialize<IModel>(fileName)!;
-    }
 }

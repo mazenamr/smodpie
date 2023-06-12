@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Smodpie.Counter;
 
 /// <summary>
@@ -16,7 +14,6 @@ namespace Smodpie.Counter;
 /// these frequency counts, and to provide access to various statistics that can be
 /// used to build and evaluate models.
 /// </remarks>
-[JsonDerivedType(typeof(TrieCounter), 1)]
 public interface ICounter
 {
     /// <summary>

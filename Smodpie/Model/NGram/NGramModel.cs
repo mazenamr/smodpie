@@ -1,7 +1,6 @@
 using Smodpie.Config;
 using Smodpie.Counter;
 using System.Buffers;
-using System.Text.Json.Serialization;
 
 namespace Smodpie.Model.NGram;
 
@@ -23,7 +22,6 @@ public class NGramModel : OnlineModel, IModel
     public ICounter Counter { get; init; }
     public Smoothing.SmoothingTypes SmoothingType { get; init; }
 
-    [JsonConstructor]
     public NGramModel(int order, ICounter counter,
         Smoothing.SmoothingTypes smoothingType = Smoothing.SmoothingTypes.JelinekMercer,
         bool onlineLearning = false) : base(onlineLearning)
