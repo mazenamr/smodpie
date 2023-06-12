@@ -141,7 +141,8 @@ internal class Program
                 fileEntropies[i] = new List<double>();
                 Console.WriteLine($"File {i}: {fileNames[i]}");
 
-                var parsed = parser.ParseFile(fileNames[i]);
+                var filePath = Path.Join(dir, fileNames[i]);
+                var parsed = parser.ParseFile(filePath);
                 if (parsed == null)
                     continue;
 
