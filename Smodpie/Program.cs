@@ -1,4 +1,9 @@
 using System.CommandLine;
+using Smodpie.Config;
+using Smodpie.Counter;
+using Smodpie.Model;
+using Smodpie.Model.NGram;
+using Smodpie.Parser;
 
 namespace Smodpie;
 
@@ -85,15 +90,60 @@ internal class Program
         });
     }
 
-    static async Task Rank(string newCommit, string dir, string counter, string tokens, int n)
+    static async Task Rank(string newCommit, string dir, string counterPath, string tokensPath, int n)
     {
+        double invlog2 = -1.0 / Math.Log(2);
+
         await Task.Run(() =>
         {
-            Console.WriteLine($"New-Commit: {newCommit}");
-            Console.WriteLine($"Directory: {dir}");
-            Console.WriteLine($"Counter: {counter}");
-            Console.WriteLine($"Tokens: {tokens}");
-            Console.WriteLine($"N: {n}");
+            IParser parser = new WordParser();
+
+            var counter = Utils.IO.LoadCounterFromFile(counterPath);
+            var tokenizer = Utils.IO.LoadTokenizerFromFile(tokensPath);
+
+            IModel model = new NGramModel(Constant.DEFAULT_NGRAM_ORDER, counter);
+
+            var fileNames = Utils.SZZ.GetFileNames(newCommit);
+
+            var fileEntropies = new List<double>[fileNames.Count];
+
+            for (int i = 0; i < fileNames.Count; i++)
+            {
+                fileEntropies[i] = new List<double>();
+                Console.WriteLine($"File {i}: {fileNames[i]}");
+
+                var parsed = parser.ParseFile(fileNames[i]);
+                if (parsed == null)
+                    continue;
+
+                for (int j = 0; j < parsed.Length; j++)
+                {
+                    var tokens = tokenizer.GetIndices(parsed[j]).ToArray();
+                    if (tokens.Length != 0)
+                    {
+                        var modelled = model.ModelTokens(tokens);
+                        var probabilities = modelled.
+                            Select(x => x.Probability * x.Confidence + (1 - x.Confidence) / tokenizer._tokens.Count).ToArray();
+                        var entropies = probabilities.
+                            Select(x => x * Math.Log(x) * invlog2).ToArray();
+                        var lineEntropy = entropies.Average() + entropies.Max();
+                        fileEntropies[i].Add(lineEntropy);
+                    }
+                    else
+                        fileEntropies[i].Add(0);
+                }
+            }
+
+            // get the top n lines ranked by entropy
+            var topLines = new List<(string, double)>();
+            for (int i = 0; i < fileNames.Count; i++)
+                for (int j = 0; j < fileEntropies[i].Count; j++)
+                    topLines.Add(($"{fileNames[i]}: {j + 1}", fileEntropies[i][j]));
+
+            topLines.Sort((x, y) => y.Item2.CompareTo(x.Item2));
+
+            for (int i = 0; i < n; i++)
+                Console.WriteLine(topLines[i].Item1);
         });
     }
 }
