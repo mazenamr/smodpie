@@ -45,7 +45,7 @@ public interface IParser
 
         try
         {
-            var lines = File.ReadAllLines(filePath);
+            string[] lines = File.ReadAllLines(filePath);
             return ParseLines(lines);
         }
         catch (Exception ex)

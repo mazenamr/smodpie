@@ -24,6 +24,9 @@ public class TrieCounter : ICounter
         if (sequence == null)
             throw new ArgumentNullException(nameof(sequence));
 
+        if (sequence.Count() == 0)
+            return (0, 0);
+
         TrieNode node = _root;
         foreach (int index in sequence)
         {
@@ -279,8 +282,11 @@ public class TrieCounter : ICounter
 
                 C += diff;
 
-                foreach (TrieNode child in CH.Values)
-                    child.CC += diff;
+                lock (_addChildLock)
+                {
+                    foreach (TrieNode child in CH.Values)
+                        child.CC += diff;
+                }
             }
         }
 

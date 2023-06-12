@@ -16,8 +16,6 @@ namespace Smodpie.Model.NGram;
 /// </remarks>
 public class NGramModel : OnlineModel, IModel
 {
-    private readonly ArrayPool<ArraySegment<int>> _arrayPool = ArrayPool<ArraySegment<int>>.Shared;
-
     public int Order { get; init; }
     public ICounter Counter { get; init; }
     public Smoothing.SmoothingTypes SmoothingType { get; init; }
@@ -43,7 +41,6 @@ public class NGramModel : OnlineModel, IModel
     {
         ArraySegment<int>[] ngrams = GetNGrams(tokens);
         Parallel.ForEach(ngrams, index => Counter.IncrementCount(index));
-        _arrayPool.Return(ngrams);
     }
 
     /// <summary>
@@ -69,7 +66,6 @@ public class NGramModel : OnlineModel, IModel
     {
         ArraySegment<int>[] ngrams = GetNGrams(tokens);
         Parallel.ForEach(ngrams, index => Counter.DecrementCount(index));
-        _arrayPool.Return(ngrams);
     }
 
     /// <summary>
@@ -100,7 +96,7 @@ public class NGramModel : OnlineModel, IModel
         double mass = 0;
         int hits = 0;
 
-        for (var i = ngram.Count; i >= 0; i--)
+        for (var i = ngram.Count-1; i >= 0; i--)
         {
             var n = ngram.Slice(i);
             var counts = Counter.GetCounts(n);
@@ -144,7 +140,7 @@ public class NGramModel : OnlineModel, IModel
     /// <returns>A list of all n-grams in the provided tokens.</returns>
     private ArraySegment<int>[] GetNGrams(in int[] tokens)
     {
-        ArraySegment<int>[] ngrams = _arrayPool.Rent(tokens.Length);
+        ArraySegment<int>[] ngrams = new ArraySegment<int>[tokens.Length];
         for (var i = 0; i < tokens.Length; i++)
         {
             int take = Math.Min(Order, tokens.Length - i);
