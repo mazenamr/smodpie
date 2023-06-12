@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Smodpie.Parser;
 
 /// <summary>
@@ -7,6 +9,8 @@ namespace Smodpie.Parser;
 /// A Parser is responsible for parsing text into a structured format, such as an array of strings.
 /// It provides methods for parsing a single block of text, an array of text lines, a file, or all files in a directory.
 /// </remarks>
+[JsonDerivedType(typeof(CharacterParser), 1)]
+[JsonDerivedType(typeof(WordParser), 2)]
 public interface IParser
 {
     /// <summary>

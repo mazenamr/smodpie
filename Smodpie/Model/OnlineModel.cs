@@ -1,3 +1,6 @@
+using Smodpie.Model.NGram;
+using System.Text.Json.Serialization;
+
 namespace Smodpie.Model;
 
 /// <summary>

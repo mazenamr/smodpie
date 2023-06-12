@@ -1,6 +1,7 @@
-using System.Buffers;
 using Smodpie.Config;
 using Smodpie.Counter;
+using System.Buffers;
+using System.Text.Json.Serialization;
 
 namespace Smodpie.Model.NGram;
 
@@ -14,7 +15,7 @@ namespace Smodpie.Model.NGram;
 /// the probability and confidence of tokens in a given sequence. It supports different smoothing techniques
 /// and can be used with online learning.
 /// </remarks>
-public class NGramModel : OnlineModel
+public class NGramModel : OnlineModel, IModel
 {
     private readonly ArrayPool<ArraySegment<int>> _arrayPool = ArrayPool<ArraySegment<int>>.Shared;
 
@@ -22,7 +23,8 @@ public class NGramModel : OnlineModel
     public ICounter Counter { get; init; }
     public Smoothing.SmoothingTypes SmoothingType { get; init; }
 
-    public NGramModel (int order, ICounter counter,
+    [JsonConstructor]
+    public NGramModel(int order, ICounter counter,
         Smoothing.SmoothingTypes smoothingType = Smoothing.SmoothingTypes.JelinekMercer,
         bool onlineLearning = false) : base(onlineLearning)
     {
@@ -31,7 +33,7 @@ public class NGramModel : OnlineModel
         SmoothingType = smoothingType;
     }
 
-    public NGramModel(int order, bool onlineLearning = false) : this(order, new Counter.TrieCounter(), onlineLearning: onlineLearning) { }
+    public NGramModel(int order, bool onlineLearning = false) : this(order, new TrieCounter(), onlineLearning: onlineLearning) { }
 
     public NGramModel(bool onlineLearning = false) : this(Constant.DEFAULT_NGRAM_ORDER, onlineLearning) { }
 
