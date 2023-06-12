@@ -139,7 +139,6 @@ internal class Program
             for (int i = 0; i < fileNames.Count; i++)
             {
                 fileEntropies[i] = new List<double>();
-                Console.WriteLine($"File {i}: {fileNames[i]}");
 
                 var filePath = Path.Join(dir, fileNames[i]);
                 var parsed = parser.ParseFile(filePath);
@@ -168,7 +167,7 @@ internal class Program
             var topLines = new List<(string, double)>();
             for (int i = 0; i < fileNames.Count; i++)
                 for (int j = 0; j < fileEntropies[i].Count; j++)
-                    topLines.Add(($"{fileNames[i]}: {j + 1}", fileEntropies[i][j]));
+                    topLines.Add(($"{fileNames[i]}:{j + 1}", fileEntropies[i][j]));
 
             topLines.Sort((x, y) => y.Item2.CompareTo(x.Item2));
 
