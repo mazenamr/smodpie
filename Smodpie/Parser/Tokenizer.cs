@@ -1,4 +1,4 @@
-namespace Smodpie.Tokenizer;
+namespace Smodpie.Parser;
 
 public class Tokenizer
 {

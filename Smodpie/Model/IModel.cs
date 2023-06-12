@@ -99,7 +99,13 @@ public interface IModel
         JsonSerializer.Serialize(fs, this);
     }
 
-    public IModel WriteToFile(string fileName)
+    public static void SaveToFile(string fileName, IModel model)
+    {
+        using var fs = File.OpenWrite(fileName);
+        JsonSerializer.Serialize(fs, model);
+    }
+
+    public static IModel LoadFromFile(string fileName)
     {
         using var fs = File.OpenRead(fileName);
         return JsonSerializer.Deserialize<IModel>(fileName)!;
