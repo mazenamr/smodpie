@@ -136,7 +136,8 @@ internal class Program
 
             IModel model = new NGramModel(Constant.DEFAULT_NGRAM_ORDER, counter);
 
-            var fileNames = Utils.SZZ.GetFileNames(newCommit);
+            var fileLines = Utils.SZZ.GetFileNames(newCommit);
+            var fileNames = fileLines.Keys.ToList();
 
             var fileEntropies = new List<double>[fileNames.Count];
 
@@ -170,8 +171,15 @@ internal class Program
             // get the top n lines ranked by entropy
             var topLines = new List<(string, double)>();
             for (int i = 0; i < fileNames.Count; i++)
+            {
+                var fileName = fileNames[i];
+                var lines = fileLines[fileName];
+
                 for (int j = 0; j < fileEntropies[i].Count; j++)
-                    topLines.Add(($"{fileNames[i]}:{j + 1}", fileEntropies[i][j]));
+                    if (lines.Contains(j + 1))
+                        topLines.Add(($"{fileName}:{j + 1}", fileEntropies[i][j]));
+
+            }
 
             topLines.Sort((x, y) => y.Item2.CompareTo(x.Item2));
 

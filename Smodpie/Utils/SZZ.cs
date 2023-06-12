@@ -9,11 +9,11 @@ public static class SZZ
     {
         public string? OldName { get; set; }
         public string? NewName { get; set; }
-        public List<string>? DeletedLines { get; set; }
-        public Dictionary<string, string>? AddedLines { get; set; }
+        public List<string> DeletedLines { get; set; }
+        public Dictionary<int, string> AddedLines { get; set; }
         public int? AuthorCount { get; set; }
-        public int? LineCountAfterChange { get; set; }
-        public int? LineCountBeforeChange { get; set; }
+        public int LineCountAfterChange { get; set; }
+        public int LineCountBeforeChange { get; set; }
     }
 
     public static Dictionary<string, List<string>> GetTrainingLines(string path)
@@ -39,7 +39,7 @@ public static class SZZ
         return parsedData;
     }
 
-    public static List<string> GetFileNames(string path)
+    public static Dictionary<string, HashSet<int>> GetFileNames(string path)
     {
         if (string.IsNullOrEmpty(path))
         {
@@ -60,17 +60,17 @@ public static class SZZ
 
         var fileInformationList = filesArray.ToObject<List<FileInformation>>() ?? throw new InvalidOperationException($"Failed to parse {path}");
 
-        var fileNames = new List<string>();
+        var fileNames = new Dictionary<string, HashSet<int>>();
         foreach (var fileInfo in fileInformationList)
         {
             if (fileInfo.NewName == null)
             {
                 if (fileInfo.OldName == null)
                     throw new InvalidOperationException($"Failed to parse {path}");
-                fileNames.Add(fileInfo.OldName);
+                fileNames.Add(fileInfo.OldName, fileInfo.AddedLines.Keys.ToHashSet());
             }
             else
-                fileNames.Add(fileInfo.NewName);
+                fileNames.Add(fileInfo.NewName, fileInfo.AddedLines.Keys.ToHashSet());
         }
 
         return fileNames;
