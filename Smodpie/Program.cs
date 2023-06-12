@@ -1,9 +1,9 @@
-using System.CommandLine;
 using Smodpie.Config;
 using Smodpie.Counter;
 using Smodpie.Model;
 using Smodpie.Model.NGram;
 using Smodpie.Parser;
+using System.CommandLine;
 
 namespace Smodpie;
 
@@ -171,7 +171,8 @@ internal class Program
 
             topLines.Sort((x, y) => y.Item2.CompareTo(x.Item2));
 
-            for (int i = 0; i < n; i++)
+            var limit = Math.Min(n, topLines.Count);
+            for (int i = 0; i < limit; i++)
                 Console.WriteLine(topLines[i].Item1);
         });
     }
