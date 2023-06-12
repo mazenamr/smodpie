@@ -8,14 +8,13 @@ namespace Smodpie.Parser;
 /// </remarks>
 public class WordParser : IParser
 {
-    private string[] _separators = new string[] { " ", "\t", "\r", "\n", ",", ".", "?", "<", ">", "=", "+", "-", "*", "/", "|", "&", "^", "%" };
+    private string[] _separators = new string[] { " ", "\t", "\r", "\n", ",", ".", "?", "<", ">", "=", "+", "-", "*", "/", "|", "&", "^", "%", "(", ")", "[", "]", "{", "}", "\"", "'", ":", ";", "!", "@", "#", "$" };
+
+    public string? Comment { get; set; } = null;
 
     /// <summary>
     /// Gets or sets the separators used by the parser to split the input text into tokens.
     /// </summary>
-    /// <remarks>
-    /// The default separators are whitespace characters, comma, period, question mark, less than, greater than, equal sign, plus sign, minus sign, asterisk, forward slash, vertical bar, ampersand, caret, and percent sign.
-    /// </remarks>
     public string[] Separators
     {
         get => _separators;
@@ -38,6 +37,17 @@ public class WordParser : IParser
         if (text == null)
             throw new ArgumentNullException(nameof(text));
 
-        return text.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+        var tokens = text.Split(Separators, StringSplitOptions.RemoveEmptyEntries);
+
+        if (Comment != null)
+            for (int i = 0; i < tokens.Length; i++)
+                if (tokens[i].Trim().StartsWith(Comment))
+                {
+                    Array.Resize(ref tokens, i);
+                    break;
+                }
+
+
+        return tokens;
     }
 }
