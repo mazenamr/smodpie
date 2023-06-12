@@ -86,7 +86,36 @@ internal class Program
     {
         await Task.Run(() =>
         {
-            Console.WriteLine($"Clean Lines Json: {path}");
+            Dictionary<string, List<string>> trainingFiles = Utils.SZZ.GetTrainingLines(path);
+
+            IParser parser = new WordParser();
+            var tokenizer = new Tokenizer();
+
+            var model = new NGramModel();
+
+            int i = 1;
+            foreach (var (file, lines) in trainingFiles)
+            {
+                Console.WriteLine($"Training {i++}: {file}");
+                var parsed = parser.ParseLines(lines.ToArray());
+
+                if (parsed == null)
+                    continue;
+
+                foreach (var line in parsed)
+                {
+                    tokenizer.Store(line);
+                    var tokens = tokenizer.GetIndices(line).ToArray();
+                    model.LearnTokens(tokens);
+                }
+            }
+
+            TrieCounter counter = (model.Counter as TrieCounter)!;
+            Console.WriteLine($"Learned {counter._root.C} tokens");
+            Console.WriteLine("Saving model...");
+
+            Utils.IO.SaveCounterToFile(counter, Constant.COUNTER_PATH);
+            Utils.IO.SaveTokenizerToFile(tokenizer, Constant.TOKENS_PATH);
         });
     }
 
