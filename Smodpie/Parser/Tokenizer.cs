@@ -47,4 +47,10 @@ public class Tokenizer
     public IEnumerable<int> GetCounts(IEnumerable<int> indices) => indices.Select(GetCount);
     public int GetCount(string token) => TryGetIndex(token, out var index) ? GetCount(index) : 0;
     public IEnumerable<int> GetCounts(IEnumerable<string> tokens) => tokens.Select(GetCount);
+
+    public void Print()
+    {
+        foreach (var (token, index) in _tokenIndices)
+            Console.WriteLine($"{token}: {_counts[index]}");
+    }
 }
