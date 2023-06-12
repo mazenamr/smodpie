@@ -125,7 +125,11 @@ internal class Program
 
         await Task.Run(() =>
         {
-            IParser parser = new WordParser();
+            IParser parser = new WordParser
+            {
+                Comment = "//",
+                NoisePrefixes = new[] { "//", "using ", "namespace ", "/*" },
+            };
 
             var counter = Utils.IO.LoadCounterFromFile(counterPath);
             var tokenizer = Utils.IO.LoadTokenizerFromFile(tokensPath);
