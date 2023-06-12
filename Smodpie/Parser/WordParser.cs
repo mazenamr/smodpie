@@ -12,6 +12,8 @@ public class WordParser : IParser
 
     public string? Comment { get; set; } = null;
 
+    public string[] NoisePrefixes { get; set; } = Array.Empty<string>();
+
     /// <summary>
     /// Gets or sets the separators used by the parser to split the input text into tokens.
     /// </summary>
@@ -34,6 +36,9 @@ public class WordParser : IParser
     /// <returns>An array of strings representing the parsed text.</returns>
     public string[] Parse(string text)
     {
+        if (NoisePrefixes.Any(p => text.Trim().ToLowerInvariant().StartsWith(p)))
+            return Array.Empty<string>();
+
         if (text == null)
             throw new ArgumentNullException(nameof(text));
 
